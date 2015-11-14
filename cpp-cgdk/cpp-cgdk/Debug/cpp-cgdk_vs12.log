@@ -1,0 +1,30 @@
+﻿Build started 11/14/2015 2:06:27 PM.
+     1>Project "f:\C++\cpp-cgdk\cpp-cgdk\cpp-cgdk_vs12.vcxproj" on node 2 (Build target(s)).
+     1>Link:
+         C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:"F:\C++\cpp-cgdk\cpp-cgdk\Debug\cpp-cgdk_vs12.exe" /INCREMENTAL /NOLOGO ws2_32.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /Debug /PDB:"F:\C++\cpp-cgdk\cpp-cgdk\Debug\cpp-cgdk_vs12.pdb" /SUBSYSTEM:CONSOLE /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"F:\C++\cpp-cgdk\cpp-cgdk\Debug\cpp-cgdk_vs12.lib" /MACHINE:X86 /SAFESEH:NO Debug\MyStrategy.obj
+         Debug\RemoteProcessClient.obj
+         Debug\Runner.obj
+         Debug\Strategy.obj
+         Debug\ActiveSocket.obj
+         Debug\HTTPActiveSocket.obj
+         Debug\PassiveSocket.obj
+         Debug\SimpleSocket.obj
+         Debug\Game.obj
+         Debug\Move.obj
+         Debug\Player.obj
+         Debug\PlayerContext.obj
+         Debug\Unit.obj
+         Debug\World.obj
+         Debug\Bonus.obj
+         Debug\Car.obj
+         Debug\CircularUnit.obj
+         Debug\OilSlick.obj
+         Debug\Projectile.obj
+         Debug\RectangularUnit.obj
+         LINK : F:\C++\cpp-cgdk\cpp-cgdk\Debug\cpp-cgdk_vs12.exe not found or not built by the last incremental link; performing full link
+         cpp-cgdk_vs12.vcxproj -> F:\C++\cpp-cgdk\cpp-cgdk\Debug\cpp-cgdk_vs12.exe
+     1>Done Building Project "f:\C++\cpp-cgdk\cpp-cgdk\cpp-cgdk_vs12.vcxproj" (Build target(s)).
+
+Build succeeded.
+
+Time Elapsed 00:00:00.52
