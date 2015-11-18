@@ -68,11 +68,11 @@ void MyStrategy::move(const Car& self, const World& world, const Game& game, Mov
 	
 	int i = 0, j = 0;
 	int count = 0;
-	 bestWay.tileX[bestWay.count]=self.getX;  //заношу координаты машины в даный момент
-	 bestWay.tileY[bestWay.count] = self.getY;//
+	 bestWay.tileX[bestWay.count]=self.getX();  //заношу координаты машины в даный момент
+	 bestWay.tileY[bestWay.count] = self.getY();//
 	 bestWay.count++;
 
-	 bestWay = shortWay(self, world, bestWay, self.getX, self.getY); //получаю структуру, где дан массив пути и кол-во тайлов, которые нужно пройти.
+	 bestWay = shortWay(self, world, bestWay, self.getX(), self.getY()); //получаю структуру, где дан массив пути и кол-во тайлов, которые нужно пройти.
 
 
 
