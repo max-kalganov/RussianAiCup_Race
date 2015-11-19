@@ -35,21 +35,101 @@ int Write_New_Points(Tree **main_mas, int count_next, int count_now, int next, i
 
 	switch (main_mas[now][i].tile_t)
 	{
-	case VERTICAL:
+	case VERTICAL: 
+		if (now != 0){
+			if (main_mas[now - 1][main_mas[now][i].FatherC].Y_tile > main_mas[now][i].Y_tile) Dir_down = false;
+			else Dir_up = false;
+		}
+		Dir_left = false;
+		Dir_right = false;
+		break;
 	case HORIZONTAL:
+		if (now != 0){
+			if (main_mas[now - 1][main_mas[now][i].FatherC].X_tile > main_mas[now][i].X_tile) Dir_right = false;
+			else Dir_left = false;
+		}
+		Dir_up = false;
+		Dir_down = false;
+		break;
 	case LEFT_TOP_CORNER:
+		if (now != 0){
+			if (main_mas[now - 1][main_mas[now][i].FatherC].X_tile > main_mas[now][i].X_tile) Dir_right = false;
+			else Dir_down = false;
+		}
+		Dir_up = false;
+		Dir_left = false;
+		break;
 	case RIGHT_TOP_CORNER:
+		if (now != 0){
+			if (main_mas[now - 1][main_mas[now][i].FatherC].Y_tile > main_mas[now][i].Y_tile) Dir_down = false;
+			else Dir_left = false;
+		}
+		Dir_up = false;
+		Dir_right = false;
+		break;
 	case LEFT_BOTTOM_CORNER:
+		if (now != 0){
+			if (main_mas[now - 1][main_mas[now][i].FatherC].X_tile > main_mas[now][i].X_tile) Dir_right = false;
+			else Dir_up = false;
+		}
+		Dir_down = false;
+		Dir_left = false;
+		break;
 	case RIGHT_BOTTOM_CORNER:
+		if (now != 0){
+			if (main_mas[now - 1][main_mas[now][i].FatherC].Y_tile < main_mas[now][i].Y_tile) Dir_up = false;
+			else Dir_left = false;
+		}
+		Dir_right = false;
+		Dir_down = false;
+		break;
 	case LEFT_HEADED_T:
+		if (now != 0){
+			if (main_mas[now - 1][main_mas[now][i].FatherC].Y_tile > main_mas[now][i].Y_tile) Dir_down = false;
+			else if (main_mas[now - 1][main_mas[now][i].FatherC].Y_tile < main_mas[now][i].Y_tile) Dir_up = false;
+			else Dir_left = false;
+		}
+		Dir_right = false;
+		break;
 	case RIGHT_HEADED_T:
+		if (now != 0){
+			if (main_mas[now - 1][main_mas[now][i].FatherC].Y_tile > main_mas[now][i].Y_tile) Dir_down = false;
+			else if (main_mas[now - 1][main_mas[now][i].FatherC].Y_tile < main_mas[now][i].Y_tile) Dir_up = false;
+			else Dir_right = false;
+		}
+		Dir_left = false;
+		break;
 	case TOP_HEADED_T:
+		if (now != 0){
+			if (main_mas[now - 1][main_mas[now][i].FatherC].X_tile > main_mas[now][i].X_tile) Dir_right = false;
+			else if (main_mas[now - 1][main_mas[now][i].FatherC].X_tile < main_mas[now][i].X_tile) Dir_left = false;
+			else Dir_up = false;
+		}
+		Dir_down = false;
+		break;
 	case BOTTOM_HEADED_T:
+		if (now != 0){
+			if (main_mas[now - 1][main_mas[now][i].FatherC].X_tile > main_mas[now][i].X_tile) Dir_right = false;
+			else if (main_mas[now - 1][main_mas[now][i].FatherC].X_tile < main_mas[now][i].X_tile) Dir_left = false;
+			else Dir_down = false;
+		}
+		Dir_up = false;
+		break;
 	case CROSSROADS:
-
-	default:
+		if (now != 0){
+			if (main_mas[now - 1][main_mas[now][i].FatherC].X_tile > main_mas[now][i].X_tile) Dir_right = false;
+			else if (main_mas[now - 1][main_mas[now][i].FatherC].X_tile < main_mas[now][i].X_tile) Dir_left = false;
+			else if (main_mas[now - 1][main_mas[now][i].FatherC].Y_tile > main_mas[now][i].Y_tile) Dir_down = false;
+			else if (main_mas[now - 1][main_mas[now][i].FatherC].Y_tile < main_mas[now][i].Y_tile) Dir_up = false;
+		}
 		break;
 	}
+
+
+	//////// Здесь нужно добавить кусок , где будут записываться ветки относительно доступных направлений
+
+
+
 }
 
 
