@@ -31,7 +31,7 @@ int Write_New_Points(Tree **main_mas, int count_next, int count_now, int next, i
 	bool Dir_down = true;
 	bool Dir_left =true;
 	bool Dir_right = true;
-
+	int How_many_ans = 0;
 
 	switch (main_mas[now][i].tile_t)
 	{
@@ -39,7 +39,9 @@ int Write_New_Points(Tree **main_mas, int count_next, int count_now, int next, i
 		if (now != 0){
 			if (main_mas[now - 1][main_mas[now][i].FatherC].Y_tile > main_mas[now][i].Y_tile) Dir_down = false;
 			else Dir_up = false;
+			How_many_ans = 1;
 		}
+		else How_many_ans = 2;
 		Dir_left = false;
 		Dir_right = false;
 		break;
@@ -47,7 +49,9 @@ int Write_New_Points(Tree **main_mas, int count_next, int count_now, int next, i
 		if (now != 0){
 			if (main_mas[now - 1][main_mas[now][i].FatherC].X_tile > main_mas[now][i].X_tile) Dir_right = false;
 			else Dir_left = false;
+			How_many_ans = 1;
 		}
+		else How_many_ans = 2;
 		Dir_up = false;
 		Dir_down = false;
 		break;
@@ -55,7 +59,9 @@ int Write_New_Points(Tree **main_mas, int count_next, int count_now, int next, i
 		if (now != 0){
 			if (main_mas[now - 1][main_mas[now][i].FatherC].X_tile > main_mas[now][i].X_tile) Dir_right = false;
 			else Dir_down = false;
+			How_many_ans = 1;
 		}
+		else How_many_ans = 2;
 		Dir_up = false;
 		Dir_left = false;
 		break;
@@ -63,7 +69,9 @@ int Write_New_Points(Tree **main_mas, int count_next, int count_now, int next, i
 		if (now != 0){
 			if (main_mas[now - 1][main_mas[now][i].FatherC].Y_tile > main_mas[now][i].Y_tile) Dir_down = false;
 			else Dir_left = false;
+			How_many_ans = 1;
 		}
+		else How_many_ans = 2;
 		Dir_up = false;
 		Dir_right = false;
 		break;
@@ -71,7 +79,9 @@ int Write_New_Points(Tree **main_mas, int count_next, int count_now, int next, i
 		if (now != 0){
 			if (main_mas[now - 1][main_mas[now][i].FatherC].X_tile > main_mas[now][i].X_tile) Dir_right = false;
 			else Dir_up = false;
+			How_many_ans = 1;
 		}
+		else How_many_ans = 2;
 		Dir_down = false;
 		Dir_left = false;
 		break;
@@ -79,7 +89,9 @@ int Write_New_Points(Tree **main_mas, int count_next, int count_now, int next, i
 		if (now != 0){
 			if (main_mas[now - 1][main_mas[now][i].FatherC].Y_tile < main_mas[now][i].Y_tile) Dir_up = false;
 			else Dir_left = false;
-		}
+			How_many_ans = 1;
+		} 
+		else How_many_ans = 2;
 		Dir_right = false;
 		Dir_down = false;
 		break;
@@ -88,7 +100,9 @@ int Write_New_Points(Tree **main_mas, int count_next, int count_now, int next, i
 			if (main_mas[now - 1][main_mas[now][i].FatherC].Y_tile > main_mas[now][i].Y_tile) Dir_down = false;
 			else if (main_mas[now - 1][main_mas[now][i].FatherC].Y_tile < main_mas[now][i].Y_tile) Dir_up = false;
 			else Dir_left = false;
+			How_many_ans = 2;
 		}
+		else How_many_ans = 3;
 		Dir_right = false;
 		break;
 	case RIGHT_HEADED_T:
@@ -96,7 +110,9 @@ int Write_New_Points(Tree **main_mas, int count_next, int count_now, int next, i
 			if (main_mas[now - 1][main_mas[now][i].FatherC].Y_tile > main_mas[now][i].Y_tile) Dir_down = false;
 			else if (main_mas[now - 1][main_mas[now][i].FatherC].Y_tile < main_mas[now][i].Y_tile) Dir_up = false;
 			else Dir_right = false;
+			How_many_ans = 2;
 		}
+		else How_many_ans = 3;
 		Dir_left = false;
 		break;
 	case TOP_HEADED_T:
@@ -104,7 +120,9 @@ int Write_New_Points(Tree **main_mas, int count_next, int count_now, int next, i
 			if (main_mas[now - 1][main_mas[now][i].FatherC].X_tile > main_mas[now][i].X_tile) Dir_right = false;
 			else if (main_mas[now - 1][main_mas[now][i].FatherC].X_tile < main_mas[now][i].X_tile) Dir_left = false;
 			else Dir_up = false;
+			How_many_ans = 2;
 		}
+		else How_many_ans = 3;
 		Dir_down = false;
 		break;
 	case BOTTOM_HEADED_T:
@@ -112,7 +130,9 @@ int Write_New_Points(Tree **main_mas, int count_next, int count_now, int next, i
 			if (main_mas[now - 1][main_mas[now][i].FatherC].X_tile > main_mas[now][i].X_tile) Dir_right = false;
 			else if (main_mas[now - 1][main_mas[now][i].FatherC].X_tile < main_mas[now][i].X_tile) Dir_left = false;
 			else Dir_down = false;
+			How_many_ans = 2;
 		}
+		else How_many_ans = 3;
 		Dir_up = false;
 		break;
 	case CROSSROADS:
@@ -121,11 +141,35 @@ int Write_New_Points(Tree **main_mas, int count_next, int count_now, int next, i
 			else if (main_mas[now - 1][main_mas[now][i].FatherC].X_tile < main_mas[now][i].X_tile) Dir_left = false;
 			else if (main_mas[now - 1][main_mas[now][i].FatherC].Y_tile > main_mas[now][i].Y_tile) Dir_down = false;
 			else if (main_mas[now - 1][main_mas[now][i].FatherC].Y_tile < main_mas[now][i].Y_tile) Dir_up = false;
+			How_many_ans = 3;
 		}
+		else How_many_ans = 4;
 		break;
 	}
 
 
+	for (int j = 0; j < How_many_ans){
+		main_mas[next][count_next].FatherC = i;
+		if (Dir_down == true){
+			main_mas[next][count_next].X_tile = main_mas[now][i].X_tile;
+			main_mas[next][count_next].Y_tile = main_mas[now][i].Y_tile + 1;
+		}
+		if (Dir_up == true){
+			main_mas[next][count_next].X_tile = main_mas[now][i].X_tile;
+			main_mas[next][count_next].Y_tile = main_mas[now][i].Y_tile - 1;
+		}
+		if (Dir_left == true){
+			main_mas[next][count_next].X_tile = main_mas[now][i].X_tile - 1;
+			main_mas[next][count_next].Y_tile = main_mas[now][i].Y_tile;
+		}
+		if (Dir_right == true){
+			main_mas[next][count_next].X_tile = main_mas[now][i].X_tile + 1;
+			main_mas[next][count_next].Y_tile = main_mas[now][i].Y_tile;
+		}
+		main_mas[next][count_next].tile_t = world.getTilesXY()[main_mas[next][count_next].X_tile][main_mas[next][count_next].Y_tile];
+		count_next++;
+		return How_many_ans;
+	}
 	//////// Здесь нужно добавить кусок , где будут записываться ветки относительно доступных направлений
 
 
@@ -154,7 +198,7 @@ void Findbestway(const Car& self, const World& world, int *main_size, int *ansma
 	bool flag = false;
 	while (flag == false) {
 		main_mas[next] = new Tree[count_now * 3 + 1];    // Возможно стоит переместить
-		for (int i = 0; i <= count_now; i++) {
+		for (int i = 0; i < count_now; i++) {
 			count_next += Write_New_Points(main_mas, count_next, count_now, next, now, i, world, &flag);  // не уверен , что сработает **mas !!!
 			if (flag == true) break;
 		}
