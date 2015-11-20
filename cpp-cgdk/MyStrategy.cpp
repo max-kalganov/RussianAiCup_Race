@@ -147,27 +147,35 @@ int Write_New_Points(Tree **main_mas, int count_next, int count_now, int next, i
 		break;
 	}
 
-
+	bool flag2 = false;
 	for (int j = 0; j < How_many_ans; j++){
 		main_mas[next][count_next].FatherC = i;
-		if (Dir_down == true){
+		if ((Dir_down == true)&&(flag2 == false)){
 			main_mas[next][count_next].X_tile = main_mas[now][i].X_tile;
 			main_mas[next][count_next].Y_tile = main_mas[now][i].Y_tile + 1;
+			flag2 = true;
+			Dir_down = false;
 		}
-		if (Dir_up == true){
+		if ((Dir_up == true) && (flag2 == false)){
 			main_mas[next][count_next].X_tile = main_mas[now][i].X_tile;
 			main_mas[next][count_next].Y_tile = main_mas[now][i].Y_tile - 1;
+			flag2 = true;
+			Dir_up = false;
 		}
-		if (Dir_left == true){
+		if ((Dir_left == true) && (flag2 == false)){
 			main_mas[next][count_next].X_tile = main_mas[now][i].X_tile - 1;
 			main_mas[next][count_next].Y_tile = main_mas[now][i].Y_tile;
+			flag2 = true;
+			Dir_left = false;
 		}
-		if (Dir_right == true){
+		if ((Dir_right == true) && (flag2 == false)){
 			main_mas[next][count_next].X_tile = main_mas[now][i].X_tile + 1;
 			main_mas[next][count_next].Y_tile = main_mas[now][i].Y_tile;
+			flag2 = true;
+			Dir_right = false;
 		}
 		main_mas[next][count_next].tile_t = world.getTilesXY()[main_mas[next][count_next].X_tile][main_mas[next][count_next].Y_tile];
-		
+		flag2 = false;
 		if ((main_mas[next][count_next].X_tile == x_finish) && (main_mas[next][count_next].Y_tile == y_finish)){
 			*flag = true;
 			How_many_ans = j + 1;
@@ -205,7 +213,7 @@ void Findbestway(const Car& self, const World& world, int *main_size, int *ansma
 	while (flag == false) {
 		main_mas[next] = new Tree[count_now * 3 + 1];    // Возможно стоит переместить
 		for (int i = 0; i < count_now; i++) {
-			count_next += Write_New_Points(main_mas, count_next, count_now, next, now, i, world, &flag);  // не уверен , что сработает **mas !!!
+			count_next += Write_New_Points(main_mas, count_next, count_now, next, now, i, world, &flag,x_finish,y_finish);  // не уверен , что сработает **mas !!!
 			if (flag == true) break;
 		}
 		helper = count_next;
@@ -215,14 +223,15 @@ void Findbestway(const Car& self, const World& world, int *main_size, int *ansma
 	}
 
 
-	int col = count_now;
+	int col = count_now - 1;
 	ansmas_X[now] = main_mas[now][col].X_tile;
 	ansmas_Y[now] = main_mas[now][col].Y_tile;
-
-	for (int i = now - 1; i >= 0; i++) {
-		col = main_mas[i + 1][col].FatherC;
-		ansmas_X[i] = main_mas[i][col].X_tile;
-		ansmas_Y[i] = main_mas[i][col].Y_tile;
+	int col2;
+	for (int i = now - 1; i >= 0; i--) {
+		col2 = main_mas[i + 1][col].FatherC;
+		ansmas_X[i] = main_mas[i][col2].X_tile;
+		ansmas_Y[i] = main_mas[i][col2].Y_tile;
+		col = col2;
 	}
 
 	for (int i = 0; i <= now; i++)
