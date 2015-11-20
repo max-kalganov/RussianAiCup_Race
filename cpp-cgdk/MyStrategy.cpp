@@ -25,7 +25,7 @@ int Convert(double num, const Game& game){
 	return ans;
 }
 
-int Write_New_Points(Tree **main_mas, int count_next, int count_now, int next, int now, int i, const World& world, bool *flag) {
+int Write_New_Points(Tree **main_mas, int count_next, int count_now, int next, int now, int i, const World& world, bool *flag , int x_finish,int y_finish) {
 	
 	bool Dir_up = true;
 	bool Dir_down = true;
@@ -148,7 +148,7 @@ int Write_New_Points(Tree **main_mas, int count_next, int count_now, int next, i
 	}
 
 
-	for (int j = 0; j < How_many_ans){
+	for (int j = 0; j < How_many_ans; j++){
 		main_mas[next][count_next].FatherC = i;
 		if (Dir_down == true){
 			main_mas[next][count_next].X_tile = main_mas[now][i].X_tile;
@@ -167,9 +167,15 @@ int Write_New_Points(Tree **main_mas, int count_next, int count_now, int next, i
 			main_mas[next][count_next].Y_tile = main_mas[now][i].Y_tile;
 		}
 		main_mas[next][count_next].tile_t = world.getTilesXY()[main_mas[next][count_next].X_tile][main_mas[next][count_next].Y_tile];
+		
+		if ((main_mas[next][count_next].X_tile == x_finish) && (main_mas[next][count_next].Y_tile == y_finish)){
+			*flag = true;
+			How_many_ans = j + 1;
+			break;
+		}
 		count_next++;
-		return How_many_ans;
 	}
+	return How_many_ans;
 	//////// Здесь нужно добавить кусок , где будут записываться ветки относительно доступных направлений
 
 
