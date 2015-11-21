@@ -313,9 +313,11 @@ void MyStrategy::move(const Car& self, const World& world, const Game& game, Mov
 	if (createVectorAndPovorot(n, self, axis, world, best_way[0], best_way[1], best_way[3], game) == true)//создаем вектор оси.Осталось только определить его направление(ли бо + либо - ).Это я сделал, но не сохранил.потом добавлю.Это считай что сделано
 	 {
 
-
+		 move.setBrake(true);//Забыл рассмотреть , когда нужно отменять тормоз
 
 		double x, y, i, j;
+		if (self.getSpeedX() < 0) axis[0] *= -1;
+		if (self.getSpeedY() < 0) axis[1] *= -1;
 		i = axis[0];
 		j = axis[1];
 		x = self.getSpeedX();
