@@ -192,13 +192,20 @@ int Write_New_Points(Tree **main_mas, int count_next, int count_now, int next, i
 
 
 
-void Findbestway(const Car& self, const World& world, int *main_size, int *ansmas_X, int *ansmas_Y, const Game& game) {
+void Findbestway(const Car& self, const World& world, int *main_size, int *ansmas_X , int *ansmas_Y, const Game& game, int Current_Path) {
 	int x_start, y_start;
 	int x_finish, y_finish;
-	x_finish = self.getNextWaypointX();
-	y_finish = self.getNextWaypointY();
-	x_start = Convert(self.getX(),game);
-	y_start = Convert(self.getY(),game);
+    if (Current_Path == 0) {
+        x_start = Convert(self.getX(), game);
+        y_start = Convert(self.getY(), game);
+    }
+    else{
+        x_start = world.getWaypoints()[0][Current_Path - 1];
+        y_start = world.getWaypoints()[1][Current_Path - 1];
+    }
+    x_finish = world.getWaypoints()[Current_Path][0];
+    y_finish = world.getWaypoints()[Current_Path][1];
+
 
 
 	Tree **main_mas = new Tree *[29];
@@ -246,15 +253,23 @@ void Findbestway(const Car& self, const World& world, int *main_size, int *ansma
 
 void MyStrategy::move(const Car& self, const World& world, const Game& game, Move& move) 
 {
-	model::TileType tileType = world.getTilesXY()[0][0];
-
-	int best_way[2][29];
-	int mas_size = 0;
-	Findbestway(self, world, &mas_size, best_way[0], best_way[1], game);
-
+    static int best_way[25][2][29]; // best_way[кол-во путей] [в 0 - Х-ы, в 1 - У-и] [маршрут от какой-то точки до ключ. тайла] 
+    static int Current_Tile = 0;
+    static int Current_Path = 0;
+    static bool FullMas = false;
+    if ((Current_Path + 1 < world.getWaypoints().size()) && (FullMas == false)){
+        if ((Current_Path + 1) == world.getWaypoints().size()) FullMas = true;
+        int mas_size = 0;
+        Findbestway(self, world, &mas_size, best_way[Current_Path][0], best_way[Current_Path][1], game, Current_Path);
+        Current_Path++;
+    }
+    else Current_Path = 0;
+    if (world.getTick() == 1)
+        int a = 8;
     move.setEnginePower(1.0);
     //move.setThrowProjectile(true);
     //move.setSpillOil(true);
+
 
 
     if (world.getTick() > game.getInitialFreezeDurationTicks()) {
