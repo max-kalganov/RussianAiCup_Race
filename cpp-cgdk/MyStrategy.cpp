@@ -2,7 +2,7 @@
 
 #define PI 3.14159265358979323846
 #define _USE_MATH_DEFINES
-#define fabs std::fabs
+#define fabs f_abs
 #include <cmath>
 #include <cstdlib>
 
@@ -17,12 +17,17 @@ struct Tree
 	int Y_tile;   // здесь я записываю Y в массиве , где я нахожу кратчайшиий путь
 	TileType tile_t;/////////////////////// Нужно добавить проверку на тип
 };
+double f_abs(double a)
+{
+	if (a < 0) return -a;
+	else return a;
 
+}
 int Convert(double num, const Game& game){
 	int ans = num / game.getTrackTileSize();
 	return ans;
 }
-bool povorot(int X, int Y, double* axis, const Game& game)
+bool povorot(int X, int Y, double* axis, const Game& game, const World& world)
 {
 	//Можно подумать, что я теряю небольшой участок тайла при таком решении. Но если машина остановится в этом маленьком куске, то ей придется огибать затем и окружность(которая у поворота), поэтому нет смысла тормозить, если я въедув этот кусочек
 	int TileX = Convert(X, game);
@@ -31,48 +36,54 @@ bool povorot(int X, int Y, double* axis, const Game& game)
 	if (Convert(X - game.getTrackTileMargin() - 105, game) != TileX) return false;
 	if (Convert(Y + game.getTrackTileMargin() + 105, game) != TileY) return false;
 	if (Convert(Y - game.getTrackTileMargin() - 105, game) != TileY) return false;
-
+	if ((world.getTilesXY()[TileX][TileY] == HORIZONTAL) ||
+		(world.getTilesXY()[TileX][TileY] == VERTICAL)) return false;
 	return true;
 
 }
 bool createVectorAndPovorot(int n, const Car& self, double* axis, const World& world, int *ansmas_X, int *ansmas_Y, int * putb, const Game& game)
 {
 	double sX, sY;
-	sX = (self.getMass()*self.getSpeedX()* self.getSpeedX()) / (2 * game.getCarCrosswiseMovementFrictionFactor());//смотрю расстояние по Х, которое проеду до полной остановки на тормозах
-	sY = (self.getMass()*self.getSpeedY() * self.getSpeedY()) / (2 * game.getCarCrosswiseMovementFrictionFactor());//и также по Y
+	sX = (self.getMass()*self.getSpeedX() * self.getSpeedX()) / (2 * 1000 * game.getCarCrosswiseMovementFrictionFactor()) - 200;//смотрю расстояние по Х, которое проеду до полной остановки на тормозах
+	sY = (self.getMass()*self.getSpeedY() * self.getSpeedY()) / (2 * 1000 * game.getCarCrosswiseMovementFrictionFactor()) - 200;//и также по Y
 	if (self.getSpeedX() < 0)  sX *= -1; //Если скорость противоположна направлению вектора оси(машина едет вверх либо влево), то пройденное расстояние надо отнимать
 	if (self.getSpeedY() < 0)  sY *= -1;
 	axis[0] = 0;
 	axis[1] = 0;
-	if (povorot(self.getX() + sX, self.getY() + sY, axis, game) == true)//если поворот возможен, то я создаю вектор для поворота.
-	{
-		if ((world.getTilesXY()[Convert(self.getX() + sX, game)][Convert(self.getY() + sY, game)] == LEFT_TOP_CORNER) || (world.getTilesXY()[Convert(self.getX() + sX, game)][Convert(self.getY() + sY, game)] == RIGHT_TOP_CORNER) || (world.getTilesXY()[Convert(self.getX() + sX, game)][Convert(self.getY() + sY, game)] == LEFT_BOTTOM_CORNER) || (world.getTilesXY()[Convert(self.getX() + sX, game)][Convert(self.getY() + sY, game)] == RIGHT_BOTTOM_CORNER))
-			axis[1] = 1;
-		else axis[0] = 1;
+	if (povorot(self.getX() + sX, self.getY() + sY, axis, game,world) == true)//если поворот возможен, то я создаю вектор для поворота.
+	{					
+			for (int i = 1; i < n; ++i)///!!!!!!!!!!!!!!!!!!!!!!!!!!!!!1
+			{
+				if (ansmas_X[i] == Convert(self.getX() + sX, game))
+					if (ansmas_Y[i] == Convert(self.getY() + sY, game))
+					{
+						if (ansmas_X[i + 1] == Convert(self.getX() + sX, game))
+							if (self.getSpeedX() > 0) axis[1] = 1;
+	     						else axis[1] = -1;//Смотрю, следующий тайл нашего пути идет вверх или вниз.
+						if (ansmas_Y[i + 1] == Convert(self.getY() + sY, game))
+						    	if (self.getSpeedY() > 0) axis[0] = 1;
+							     else axis[0] = -1;
+								break;
+					}
+		
 
-		{
-			int p = 0;
-			//этой функции нужно дать индекс того тайла из массива пути(p), где находится авто и кол-во элементов(n) в этом массиве, иначе не сработает, если будет круг
-			while (putb[p++] != 1)
-
-				for (int i = p; i < n; ++i)
-				{
-					if (ansmas_X[i] = Convert(self.getX() + sX, game))
-						if (ansmas_Y[i] = Convert(self.getY() + sY, game))
-						{
-							if (ansmas_X[i + 1] == Convert(self.getX() + sX, game)) axis[0] = 1; //Очень часто вызываю эту функцию convert().Можешь ее один раз вызвать и просвоить какой - нибудь переменной ? Сам этого не делаю, так как это усложняет понимание того, что я написал)
-							if (ansmas_Y[i + 1] == Convert(self.getY() + sY, game)) axis[1] = 1;//Смотрю, следующий тайл нашего пути идет вверх или вниз.
-							break;
-						}
-				}
-		}
-
+           	}
 		return true;
 
 
 	}
 	//Если поворот не нужен(или невозможен) надо сделать вектор, которого он держался до вызова этой функции. 
-	else return false;
+
+	else
+	{
+		if (world.getTilesXY()[Convert(self.getX(), game)][Convert(self.getY(), game)] == VERTICAL)
+			if (self.getSpeedY() <= 0) axis[1] = -1;
+			  else axis[1] = 1;
+		if (world.getTilesXY()[Convert(self.getX(), game)][Convert(self.getY(), game)] == HORIZONTAL)
+				if (self.getSpeedX() <= 0) axis[0] = -1;
+				else axis[0] = 1;
+		return false;
+	}
 }
 
 int Write_New_Points(Tree **main_mas, int count_next, int count_now, int next, int now, int i, const World& world, bool *flag , int x_finish,int y_finish) {
@@ -243,7 +254,7 @@ int Write_New_Points(Tree **main_mas, int count_next, int count_now, int next, i
 
 
 void Findbestway(const Car& self, const World& world, int *main_size, int *ansmas_X, int *ansmas_Y, const Game& game) {
-	int x_start, y_start;
+    int x_start, y_start;
 	int x_finish, y_finish;
 	x_finish = self.getNextWaypointX();
 	y_finish = self.getNextWaypointY();
@@ -292,49 +303,72 @@ void Findbestway(const Car& self, const World& world, int *main_size, int *ansma
 	*main_size = now + 1;
 }
 
+double ConvertAngle(double phi)
+{
+	if (phi >= PI / 4) return 1;
+	if (phi <= PI / -4) return -1;
+	return (phi * 4 / PI);
 
-
+}
 void MyStrategy::move(const Car& self, const World& world, const Game& game, Move& move) 
 {
 	model::TileType tileType = world.getTilesXY()[0][0];
 	const int n= 29;
-	int best_way[3][n];//После прохождения полного круга нужно обнулить третью строку
-	int mas_size = 0;
-	//if (world.getTick() < game.getInitialFreezeDurationTicks())
+
+	if (world.getTick() > 300)
+	{
+
+		int best_way[3][n] = { 0 };//После прохождения полного круга нужно обнулить третью строку
+		int mas_size = 0;
+		//if (world.getTick() < game.getInitialFreezeDurationTicks())
 		Findbestway(self, world, &mas_size, best_way[0], best_way[1], game);
-	
-	for (int i = 0; i < n; ++i)
-		if (best_way[0][i] == Convert(self.getX(), game))
-			if (best_way[1][i] == Convert(self.getY(), game))
-				best_way[2][i] = 1;
 
-	double *axis = new double[2];
+		for (int i = 0; i < n; ++i)
+			if (best_way[0][i] == Convert(self.getX(), game))
+				if (best_way[1][i] == Convert(self.getY(), game))
+				{
+					best_way[2][i] = 1;
+					break;
+				}
+		double *axis = new double[2];
 
-	if (createVectorAndPovorot(n, self, axis, world, best_way[0], best_way[1], best_way[3], game) == true)//создаем вектор оси.Осталось только определить его направление(ли бо + либо - ).Это я сделал, но не сохранил.потом добавлю.Это считай что сделано
-	 {
 
-		 move.setBrake(true);//Забыл рассмотреть , когда нужно отменять тормоз
-
+		createVectorAndPovorot(n, self, axis, world, best_way[0], best_way[1], best_way[2], game);//создаем вектор оси.Осталось только определить его направление(ли бо + либо - ).Это я сделал, но не сохранил.потом добавлю.Это считай что сделано 
 		double x, y, i, j;
-		if (self.getSpeedX() < 0) axis[0] *= -1;
-		if (self.getSpeedY() < 0) axis[1] *= -1;
+		int znak;
 		i = axis[0];
 		j = axis[1];
 		x = self.getSpeedX();
 		y = self.getSpeedY();
-
-		double phi = 0;//надо определить, как отклониться. Есть такая идея, но  я не уверен.
+		double phi = 0.;//надо определить, как отклониться. Есть такая идея, но  я не уверен.
 		double znam = sqrt(x*x + y*y)*sqrt(i*i + j*j);
-		  if (znam != 0) phi = acos(fabs(x*i + y*j) / znam);
-		    move.setWheelTurn(tan(phi));
-		    move.setEnginePower(1.0);
+		if (world.getTick() == 401)
+		{
+
+			int a =5;
+
+
+		}
+		if ((znam >0.00001)||(znam<-0.00001)) phi = acos((x*i + y*j) / znam);
+		if (axis[0] != 0)
+			if (self.getSpeedY() < 0) znak = 1.0;
+			 else znak = -1.0;
+		if (axis[1] != 0)
+			if (self.getSpeedX() < 0) znak = 1.0; 
+			 else znak = -1.0;
+
+			move.setWheelTurn(ConvertAngle(2*phi*znak));
+			delete[]axis;
+	
+	
 		    //move.setThrowProjectile(true);
 		    //move.setSpillOil(true);
 	 }
 
-    
+	
       //  move.setUseNitro(true);
-    
+	move.setEnginePower(1.0);
+
 }
 
 
