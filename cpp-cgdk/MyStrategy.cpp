@@ -195,18 +195,18 @@ int Write_New_Points(Tree **main_mas, int count_next, int count_now, int next, i
 void Findbestway(const Car& self, const World& world, int *main_size, int *ansmas_X , int *ansmas_Y, const Game& game, int Current_Path) {
 	int x_start, y_start;
 	int x_finish, y_finish;
-    if (Current_Path == 0) {
-        x_start = Convert(self.getX(), game);
-        y_start = Convert(self.getY(), game);
-    }
-    else{
-        x_start = world.getWaypoints()[0][Current_Path - 1];
-        y_start = world.getWaypoints()[1][Current_Path - 1];
-    }
-    x_finish = world.getWaypoints()[Current_Path][0];
-    y_finish = world.getWaypoints()[Current_Path][1];
+    x_start = world.getWaypoints()[Current_Path][0];
+    y_start = world.getWaypoints()[Current_Path][1];
 
-
+    if (Current_Path + 1 < world.getWaypoints().size()){
+        x_finish = world.getWaypoints()[Current_Path + 1][0];
+        y_finish = world.getWaypoints()[Current_Path + 1][1];
+    }
+    else
+    {
+        x_finish = world.getWaypoints()[0][0];
+        y_finish = world.getWaypoints()[0][1];
+    }
 
 	Tree **main_mas = new Tree *[29];
 	main_mas[0] = new Tree[1];
@@ -240,7 +240,8 @@ void Findbestway(const Car& self, const World& world, int *main_size, int *ansma
 		ansmas_Y[i] = main_mas[i][col2].Y_tile;
 		col = col2;
 	}
-
+    ansmas_X[now+1] = -1;
+    ansmas_Y[now+1] = -1;
 	for (int i = 0; i <= now; i++)
 		delete[] main_mas[i];
 	delete[] main_mas;
@@ -257,15 +258,23 @@ void MyStrategy::move(const Car& self, const World& world, const Game& game, Mov
     static int Current_Tile = 0;
     static int Current_Path = 0;
     static bool FullMas = false;
-    if ((Current_Path + 1 < world.getWaypoints().size()) && (FullMas == false)){
-        if ((Current_Path + 1) == world.getWaypoints().size()) FullMas = true;
-        int mas_size = 0;
-        Findbestway(self, world, &mas_size, best_way[Current_Path][0], best_way[Current_Path][1], game, Current_Path);
-        Current_Path++;
+    int mas_size = 0;
+    if (world.getTick() == 13)
+        int  a = 8;
+    if (world.getTick() < world.getWaypoints().size()){
+        if ((Current_Path + 1 < world.getWaypoints().size()) && (FullMas == false)){
+            if ((Current_Path + 1) == world.getWaypoints().size()) FullMas = true;
+            
+            Findbestway(self, world, &mas_size, best_way[Current_Path][0], best_way[Current_Path][1], game, Current_Path);
+            Current_Path++;
+        }
+        else {  
+            Findbestway(self, world, &mas_size, best_way[Current_Path][0], best_way[Current_Path][1], game, Current_Path);
+            best_way[Current_Path+1][0][0] = -1;
+            best_way[Current_Path+1][1][0] = -1;
+            Current_Path = 0;
+        }
     }
-    else Current_Path = 0;
-    if (world.getTick() == 1)
-        int a = 8;
     move.setEnginePower(1.0);
     //move.setThrowProjectile(true);
     //move.setSpillOil(true);
@@ -274,6 +283,7 @@ void MyStrategy::move(const Car& self, const World& world, const Game& game, Mov
 
     if (world.getTick() > game.getInitialFreezeDurationTicks()) {
       //  move.setUseNitro(true);
+        int y = 7;
     }
 }
 
