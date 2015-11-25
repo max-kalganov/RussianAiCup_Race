@@ -34,7 +34,7 @@ int Convert(double num, const Game& game){
 	return ans;
 }
 
-bool povorot(int X, int Y, const Game& game, const World& world)
+bool povorot(int X, int Y, const Game& game, const World& world, int *Current_Tile,int *Current_Path)
 {
 	//ћожно подумать, что € тер€ю небольшой участок тайла при таком решении. Ќо если машина остановитс€ в этом маленьком куске, то ей придетс€ огибать затем и окружность(котора€ у поворота), поэтому нет смысла тормозить, если € въедув этот кусочек
 	int TileX = Convert(X, game);
@@ -43,13 +43,13 @@ bool povorot(int X, int Y, const Game& game, const World& world)
 	if (Convert(X - game.getTrackTileMargin() - 105, game) != TileX) return false;
 	if (Convert(Y + game.getTrackTileMargin() + 105, game) != TileY) return false;
 	if (Convert(Y - game.getTrackTileMargin() - 105, game) != TileY) return false;
-	if ((world.getTilesXY()[TileX][TileY] == HORIZONTAL) ||
+    if ((TileX == best_way[*Current_Path][*Current_Tile][0]) && (TileY == best_way[*Current_Path][*Current_Tile][1])) return false;
+
+    if ((world.getTilesXY()[TileX][TileY] == HORIZONTAL) ||
 		(world.getTilesXY()[TileX][TileY] == VERTICAL)) return false;
 	return true;
 
 }
-
-
 
 int Write_New_Points(Tree **main_mas, int count_next, int count_now, int next, int now, int i, const World& world, bool *flag , int x_finish,int y_finish) {
 	
@@ -286,10 +286,107 @@ bool Check_Cond_For_Turning(const Car& self, const World& world, int* Current_Ti
     
     double S_X = self.getSpeedX()*self.getSpeedX() * S_For_Prop; S_X = S_X / (Sp_For_Prop * Sp_For_Prop);
     double S_Y = self.getSpeedY()*self.getSpeedY() * S_For_Prop; S_Y = S_Y / (Sp_For_Prop * Sp_For_Prop);
-    if (povorot(self.getX() + S_X, self.getY() - S_Y, game, world)){
+    if (self.getSpeedX() < 0)  S_X *= -1; //≈сли скорость противоположна направлению вектора оси(машина едет вверх либо влево), то пройденное рассто€ние надо отнимать
+    if (self.getSpeedY() < 0)  S_Y *= -1;
+
+    if (povorot(self.getX() + S_X, self.getY() + S_Y, game, world, Current_Tile,Current_Path)){
         return true;
     }
     return false;
+}
+
+int Create_Axis(int *axis, int* Current_Tile, int* Current_Path, const Car& self, const Game& game){
+    double S_X = self.getSpeedX()*self.getSpeedX() * S_For_Prop; S_X = S_X / (Sp_For_Prop * Sp_For_Prop);
+    double S_Y = self.getSpeedY()*self.getSpeedY() * S_For_Prop; S_Y = S_Y / (Sp_For_Prop * Sp_For_Prop);
+    if (self.getSpeedX() < 0)  S_X *= -1; //≈сли скорость противоположна направлению вектора оси(машина едет вверх либо влево), то пройденное рассто€ние надо отнимать
+    if (self.getSpeedY() < 0)  S_Y *= -1;
+    int TileX = Convert(self.getX() + S_X, game);
+    int TileY = Convert(self.getY() + S_Y, game);
+    
+    int Next_Tile = *Current_Tile + 1;
+    int Next_Path = *Current_Path;
+    if (best_way[*Current_Path][*Current_Tile + 1][0] == -1){
+        Next_Tile = 1;
+        Next_Path = *Current_Path + 1;
+    }
+    int Next_Tile2 = *Current_Tile + 2;
+    int Next_Path2 = *Current_Path;
+    if (best_way[*Current_Path][*Current_Tile + 2][0] == -1){
+        if (Next_Tile == 1){
+            if (best_way[*Current_Path + 1][*Current_Tile + 2][0] == -1){
+                Next_Path = *Current_Path + 2;
+                Next_Tile2 = 1;
+            }
+            else{
+                Next_Tile2 = 2;
+                Next_Path = *Current_Path + 1;
+            }
+        }
+        else {
+            Next_Tile2 = 1;
+            Next_Path = *Current_Path + 1;
+        }
+    }
+
+    if ((TileX == best_way[Next_Path][Next_Tile][0]) && (TileY == best_way[Next_Path][Next_Tile][1])){
+        if (best_way[Next_Path][Next_Tile][0] == best_way[Next_Path2][Next_Tile2][0]){
+            axis[0] = 0;
+            if (best_way[Next_Path][Next_Tile][1] > best_way[Next_Path2][Next_Tile2][1])
+                axis[1] = -1;
+            else axis[1] = 1;
+        }
+        else{
+            axis[1] = 0;
+            if (best_way[Next_Path][Next_Tile][0] > best_way[Next_Path2][Next_Tile2][0])
+                axis[0] = -1;
+            else axis[0] = 1;
+        }
+    }
+    else if ((TileX == best_way[Next_Path2][Next_Tile2][0]) && (TileY == best_way[Next_Path2][Next_Tile2][1])){
+        int Next_Tile3 = Next_Tile2 + 1;
+        int Next_Path3 = Next_Path2;
+        if (best_way[Next_Path2][Next_Tile2 + 1][0] == -1){
+            Next_Tile3 = 1;
+            Next_Path3 = Next_Path2 + 1;
+        }
+        if (best_way[Next_Path2][Next_Tile2][0] == best_way[Next_Path3][Next_Tile3][0]){
+            axis[0] = 0;
+            if (best_way[Next_Path2][Next_Tile2][1] > best_way[Next_Path3][Next_Tile3][1])
+                axis[1] = -1;
+            else axis[1] = 1;
+        }
+        else{
+            axis[1] = 0;
+            if (best_way[Next_Path2][Next_Tile2][0] > best_way[Next_Path3][Next_Tile3][0])
+                axis[0] = -1;
+            else axis[0] = 1;
+        }
+    }
+    else return 0;
+    return 1;
+
+}
+
+void Create_Axis_in_my_pos(int *axis, int* Current_Tile, int* Current_Path){
+    int Next_Tile = *Current_Tile + 1;
+    int Next_Path = *Current_Path;
+    if (best_way[*Current_Path][*Current_Tile + 1][0] == -1){
+        Next_Tile = 1;
+        Next_Path = *Current_Path + 1;
+    }
+    if (best_way[*Current_Path][*Current_Tile][0] == best_way[Next_Path][Next_Tile][0]){
+        axis[0] = 0;
+        if (best_way[*Current_Path][*Current_Tile][1] > best_way[Next_Path][Next_Tile][1])
+            axis[1] = -1;
+        else axis[1] = 1;
+    }
+    else{
+        axis[1] = 0;
+        if (best_way[*Current_Path][*Current_Tile][0] > best_way[Next_Path][Next_Tile][0])
+            axis[0] = -1;
+        else axis[0] = 1;
+    }
+        
 }
 
 void MyStrategy::move(const Car& self, const World& world, const Game& game, Move& move) 
@@ -316,26 +413,34 @@ void MyStrategy::move(const Car& self, const World& world, const Game& game, Mov
 
     
     if (world.getTick() > game.getInitialFreezeDurationTicks())
-    {
-        
+    {     
         static bool amTurning = false;
-        double *axis = new double[2];
+        int *axis = new int[2];
+
         // ”знаЄм нужно ли поворачивать
-        amTurning = Check_Cond_For_Turning(self, world, &Current_Tile, &Current_Path,game);
-        
-        
-        if (world.getTick() == 400)
-            int d = 9;
-
+        amTurning = Check_Cond_For_Turning(self, world, &Current_Tile, &Current_Path,game);   //  в функции povorot нужно добавить проверку , нужно ли мне поворачивать в 
+                                                                                                // каком-то тайле. » добавить проверку на тот случай, если идут несколько 
+                                                                                                // поворотных тайлов подр€д (использование тормоза)       
         // —оздаЄм вектор направлени€ 
-
+        if (amTurning) {
+            int ans;
+            ans = Create_Axis(axis, &Current_Tile, &Current_Path,self,game);   // возвращает 0 ,если точка, где остановитс€ машина не €вл€етс€ ни одной из двух последующих 
+                                                                              /// тайлов в идеальном пути 
+        }
+        else{
+            Create_Axis_in_my_pos(axis, &Current_Tile, &Current_Path);
+        }
 
         // Ќаходим направление скорости
-
+        double vect_Speed[2];
+        vect_Speed[0] = self.getSpeedX();
+        vect_Speed[1] = self.getSpeedY();
 
         // Ќаправл€ем колЄса так, чтобы вектор скорости и вектор направлени€ совпадали
-		
 
+        //!! Ќужно , чтобы машина ехала к дальней стороне от поворота, иначе она не  войдЄт в поворот
+		//!! в процессе поворота нужно посто€нно провер€ть , находимс€ ли мы в тайлах, указанных в best_way. »наче строить Local_Path
+        //!! возможно стоит создать два массива дл€ насто€щей точки и дл€ следующей. 
         
         delete[] axis;
 	}
@@ -348,7 +453,15 @@ void MyStrategy::move(const Car& self, const World& world, const Game& game, Mov
 MyStrategy::MyStrategy() { }
 
 
-/*createVectorAndPovorot(n, self, axis, world, best_way[0], best_way[1], best_way[2], game);//создаем вектор оси.ќсталось только определить его направление(ли бо + либо - ).Ёто € сделал, но не сохранил.потом добавлю.Ёто считай что сделано
+/*
+if (world.getTick() == 400)
+int d = 9;
+
+
+
+
+
+createVectorAndPovorot(n, self, axis, world, best_way[0], best_way[1], best_way[2], game);//создаем вектор оси.ќсталось только определить его направление(ли бо + либо - ).Ёто € сделал, но не сохранил.потом добавлю.Ёто считай что сделано
 double x, y, i, j;
 int znak;
 i = axis[0];
