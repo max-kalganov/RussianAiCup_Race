@@ -305,15 +305,15 @@ int Create_Axis(int *axis, int* Current_Tile, int* Current_Path, const Car& self
     
     int Next_Tile = *Current_Tile + 1;
     int Next_Path = *Current_Path;
-    if (best_way[*Current_Path][*Current_Tile + 1][0] == -1){
+    if (best_way[*Current_Path][0][*Current_Tile + 1] == -1){
         Next_Tile = 1;
         Next_Path = *Current_Path + 1;
     }
     int Next_Tile2 = *Current_Tile + 2;
     int Next_Path2 = *Current_Path;
-    if (best_way[*Current_Path][*Current_Tile + 2][0] == -1){
+    if (best_way[*Current_Path][0][*Current_Tile + 2] == -1){
         if (Next_Tile == 1){
-            if (best_way[*Current_Path + 1][*Current_Tile + 2][0] == -1){
+            if (best_way[*Current_Path + 1][0][*Current_Tile + 2] == -1){
                 Next_Path = *Current_Path + 2;
                 Next_Tile2 = 1;
             }
@@ -328,36 +328,36 @@ int Create_Axis(int *axis, int* Current_Tile, int* Current_Path, const Car& self
         }
     }
 
-    if ((TileX == best_way[Next_Path][Next_Tile][0]) && (TileY == best_way[Next_Path][Next_Tile][1])){
-        if (best_way[Next_Path][Next_Tile][0] == best_way[Next_Path2][Next_Tile2][0]){
+    if ((TileX == best_way[Next_Path][0][Next_Tile]) && (TileY == best_way[Next_Path][1][Next_Tile])){
+        if (best_way[Next_Path][0][Next_Tile] == best_way[Next_Path2][0][Next_Tile2]){
             axis[0] = 0;
-            if (best_way[Next_Path][Next_Tile][1] > best_way[Next_Path2][Next_Tile2][1])
+            if (best_way[Next_Path][1][Next_Tile] > best_way[Next_Path2][1][Next_Tile2])
                 axis[1] = -1;
             else axis[1] = 1;
         }
         else{
             axis[1] = 0;
-            if (best_way[Next_Path][Next_Tile][0] > best_way[Next_Path2][Next_Tile2][0])
+            if (best_way[Next_Path][0][Next_Tile] > best_way[Next_Path2][0][Next_Tile2])
                 axis[0] = -1;
             else axis[0] = 1;
         }
     }
-    else if ((TileX == best_way[Next_Path2][Next_Tile2][0]) && (TileY == best_way[Next_Path2][Next_Tile2][1])){
+    else if ((TileX == best_way[Next_Path2][0][Next_Tile2]) && (TileY == best_way[Next_Path2][1][Next_Tile2])){
         int Next_Tile3 = Next_Tile2 + 1;
         int Next_Path3 = Next_Path2;
-        if (best_way[Next_Path2][Next_Tile2 + 1][0] == -1){
+        if (best_way[Next_Path2][0][Next_Tile2 + 1] == -1){
             Next_Tile3 = 1;
             Next_Path3 = Next_Path2 + 1;
         }
-        if (best_way[Next_Path2][Next_Tile2][0] == best_way[Next_Path3][Next_Tile3][0]){
+        if (best_way[Next_Path2][0][Next_Tile2] == best_way[Next_Path3][0][Next_Tile3]){
             axis[0] = 0;
-            if (best_way[Next_Path2][Next_Tile2][1] > best_way[Next_Path3][Next_Tile3][1])
+            if (best_way[Next_Path2][1][Next_Tile2] > best_way[Next_Path3][1][Next_Tile3])
                 axis[1] = -1;
             else axis[1] = 1;
         }
         else{
             axis[1] = 0;
-            if (best_way[Next_Path2][Next_Tile2][0] > best_way[Next_Path3][Next_Tile3][0])
+            if (best_way[Next_Path2][0][Next_Tile2] > best_way[Next_Path3][0][Next_Tile3])
                 axis[0] = -1;
             else axis[0] = 1;
         }
@@ -370,19 +370,19 @@ int Create_Axis(int *axis, int* Current_Tile, int* Current_Path, const Car& self
 void Create_Axis_in_my_pos(int *axis, int* Current_Tile, int* Current_Path){
     int Next_Tile = *Current_Tile + 1;
     int Next_Path = *Current_Path;
-    if (best_way[*Current_Path][*Current_Tile + 1][0] == -1){
+    if (best_way[*Current_Path][0][*Current_Tile + 1] == -1){
         Next_Tile = 1;
         Next_Path = *Current_Path + 1;
     }
-    if (best_way[*Current_Path][*Current_Tile][0] == best_way[Next_Path][Next_Tile][0]){
+    if (best_way[*Current_Path][0][*Current_Tile] == best_way[Next_Path][0][Next_Tile]){
         axis[0] = 0;
-        if (best_way[*Current_Path][*Current_Tile][1] > best_way[Next_Path][Next_Tile][1])
+        if (best_way[*Current_Path][1][*Current_Tile] > best_way[Next_Path][1][Next_Tile])
             axis[1] = -1;
         else axis[1] = 1;
     }
     else{
         axis[1] = 0;
-        if (best_way[*Current_Path][*Current_Tile][0] > best_way[Next_Path][Next_Tile][0])
+        if (best_way[*Current_Path][0][*Current_Tile] > best_way[Next_Path][0][Next_Tile])
             axis[0] = -1;
         else axis[0] = 1;
     }
@@ -420,7 +420,10 @@ void MyStrategy::move(const Car& self, const World& world, const Game& game, Mov
         // Узнаём нужно ли поворачивать
         amTurning = Check_Cond_For_Turning(self, world, &Current_Tile, &Current_Path,game);   //  в функции povorot нужно добавить проверку , нужно ли мне поворачивать в 
                                                                                                 // каком-то тайле. И добавить проверку на тот случай, если идут несколько 
-                                                                                                // поворотных тайлов подряд (использование тормоза)       
+        if (world.getTick() == 181)
+                int d = 9;
+
+        // поворотных тайлов подряд (использование тормоза)       
         // Создаём вектор направления 
         if (amTurning) {
             int ans;
