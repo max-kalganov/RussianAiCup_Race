@@ -4,7 +4,6 @@
 #define S_For_Prop 841.15578617973542;
 #define PI 3.14159265358979323846
 #define _USE_MATH_DEFINES
-#define fabs f_abs
 #include <cmath>
 #include <cstdlib>
 
@@ -44,7 +43,8 @@ bool povorot(int X, int Y, const Game& game, const World& world, int *Current_Ti
 	if (Convert(Y + game.getTrackTileMargin() + 105, game) != TileY) return false;
 	if (Convert(Y - game.getTrackTileMargin() - 105, game) != TileY) return false;
 	if ((TileX == best_way[*Current_Path][0][*Current_Tile]) && (TileY == best_way[*Current_Path][1][*Current_Tile])) return false;
-	if ((TileX < 0) || (TileY < 0) || (TileX >= world.getTilesXY().size()) || (TileY >= world.getTilesXY().size()))return false;
+	int max_num = world.getTilesXY().size();
+	if ((TileX < 0) || (TileY < 0) || (TileX >= max_num ) || (TileY >= max_num))return false;
     if ((world.getTilesXY()[TileX][TileY] == HORIZONTAL) ||
 		(world.getTilesXY()[TileX][TileY] == VERTICAL)) return false;
 	return true;
@@ -170,6 +170,8 @@ int Write_New_Points(Tree **main_mas, int count_next, int count_now, int next, i
 			How_many_ans = 3;
 		}
 		else How_many_ans = 4;
+		break;
+	default:
 		break;
 	}
 
@@ -423,15 +425,17 @@ void MyStrategy::move(const Car& self, const World& world, const Game& game, Mov
                                                                                               // каком-то тайле. » добавить проверку на тот случай, если идут несколько 
                                                                                                 // поворотных тайлов подр€д (использование тормоза)       
         // —оздаЄм вектор направлени€ 
-		if (world.getTick() == 450)
+		if (world.getTick() == 830)
 			int a = 5;
 		if (amTurning) {
             int ans;
             ans = Create_Axis(axis, &Current_Tile, &Current_Path,self,game);   // возвращает 0 ,если точка, где остановитс€ машина не €вл€етс€ ни одной из двух последующих 
-                                                                              /// тайлов в идеальном пути 
-        }
+			move.setBrake(true);
+		}
         else{
             Create_Axis_in_my_pos(axis, &Current_Tile, &Current_Path);
+			move.setBrake(false);
+			move.setEnginePower(1.0);
         }
 
         // Ќаходим направление скорости
@@ -445,14 +449,22 @@ void MyStrategy::move(const Car& self, const World& world, const Game& game, Mov
 		 double j = axis[1];
 		double phi = 0.;//надо определить, как отклонитьс€. ≈сть така€ иде€, но  € не уверен.
 		double znam = sqrt(x*x + y*y)*sqrt(i*i + j*j);
-		if ((znam >0.00001) || (znam<-0.00001)) phi = acos((x*i + y*j) / znam);
-		     if (axis[0] != 0)
+		if ((znam >0.00001) || (znam<-0.00001)) phi = acos(f_abs(x*i + y*j) / znam);
+		if (axis[0] == 1)
 			if (self.getSpeedY() < 0) znak = 1.0;
 			else znak = -1.0;
-			if (axis[1] != 0)
-				if (self.getSpeedX() < 0) znak = 1.0;
-				else znak = -1.0;
-				move.setWheelTurn(ConvertAngle(2 * phi*znak));
+		if (axis[0] == -1)
+			if (self.getSpeedY() < 0) znak = -1.0;
+			else znak = 1.0;
+		if (axis[1] == 1)
+			if (self.getSpeedX() < 0) znak = -1.0;
+			else znak = 1.0;
+		if (axis[1] == -1)
+			if (self.getSpeedX() < 0) znak = 1.0;
+			else znak = -1.0;
+		move.setWheelTurn(ConvertAngle(2 * phi*znak));
+		if (f_abs(phi) < 0.2) 
+			move.setWheelTurn(ConvertAngle(self.getAngleTo(self.getX() + axis[0], self.getY() + axis[1])));
         // Ќаправл€ем колЄса так, чтобы вектор скорости и вектор направлени€ совпадали
 
         //!! Ќужно , чтобы машина ехала к дальней стороне от поворота, иначе она не  войдЄт в поворот
