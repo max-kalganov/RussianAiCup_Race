@@ -38,20 +38,21 @@ bool povorot(int X, int Y, double* axis, const Game& game, const World& world)
 	if (Convert(Y - game.getTrackTileMargin() - 105, game) != TileY) return false;
 	if ((world.getTilesXY()[TileX][TileY] == HORIZONTAL) ||
 		(world.getTilesXY()[TileX][TileY] == VERTICAL)) return false;
+
 	return true;
 
 }
-bool createVectorAndPovorot(int n, const Car& self, double* axis, const World& world, int *ansmas_X, int *ansmas_Y, int * putb, const Game& game)
+bool createVectorAndPovorot(Move& move,int n, const Car& self, double* axis, const World& world, int *ansmas_X, int *ansmas_Y, int * putb, const Game& game)
 {
 	double sX, sY;
-	sX = (self.getMass()*self.getSpeedX() * self.getSpeedX()) / (2 * 1000 * game.getCarCrosswiseMovementFrictionFactor()) - 200;//смотрю расстояние по Х, которое проеду до полной остановки на тормозах
-	sY = (self.getMass()*self.getSpeedY() * self.getSpeedY()) / (2 * 1000 * game.getCarCrosswiseMovementFrictionFactor()) - 200;//и также по Y
+	sX = (self.getMass()*self.getSpeedX() * self.getSpeedX()) / (2 * 1000 * game.getCarCrosswiseMovementFrictionFactor());//смотрю расстояние по Х, которое проеду до полной остановки на тормозах
+	sY = (self.getMass()*self.getSpeedY() * self.getSpeedY()) / (2 * 1000 * game.getCarCrosswiseMovementFrictionFactor());//и также по Y
 	if (self.getSpeedX() < 0)  sX *= -1; //Если скорость противоположна направлению вектора оси(машина едет вверх либо влево), то пройденное расстояние надо отнимать
 	if (self.getSpeedY() < 0)  sY *= -1;
 	axis[0] = 0;
 	axis[1] = 0;
 	if (povorot(self.getX() + sX, self.getY() + sY, axis, game,world) == true)//если поворот возможен, то я создаю вектор для поворота.
-	{					
+	{ 
 			for (int i = 1; i < n; ++i)///!!!!!!!!!!!!!!!!!!!!!!!!!!!!!1
 			{
 				if (ansmas_X[i] == Convert(self.getX() + sX, game))
@@ -76,6 +77,7 @@ bool createVectorAndPovorot(int n, const Car& self, double* axis, const World& w
 
 	else
 	{
+		
 		if (world.getTilesXY()[Convert(self.getX(), game)][Convert(self.getY(), game)] == VERTICAL)
 			if (self.getSpeedY() <= 0) axis[1] = -1;
 			  else axis[1] = 1;
@@ -306,7 +308,7 @@ void Findbestway(const Car& self, const World& world, int *main_size, int *ansma
 double ConvertAngle(double phi)
 {
 	if (phi >= PI / 4) return 1;
-	if (phi <= PI / -4) return -1;
+	if (phi <= (-1)*PI / 4) return -1;
 	return (phi * 4 / PI);
 
 }
@@ -333,7 +335,7 @@ void MyStrategy::move(const Car& self, const World& world, const Game& game, Mov
 		double *axis = new double[2];
 
 
-		createVectorAndPovorot(n, self, axis, world, best_way[0], best_way[1], best_way[2], game);//создаем вектор оси.Осталось только определить его направление(ли бо + либо - ).Это я сделал, но не сохранил.потом добавлю.Это считай что сделано 
+		createVectorAndPovorot(move,n, self, axis, world, best_way[0], best_way[1], best_way[2], game);//создаем вектор оси.Осталось только определить его направление(ли бо + либо - ).Это я сделал, но не сохранил.потом добавлю.Это считай что сделано 
 		double x, y, i, j;
 		int znak;
 		i = axis[0];
@@ -341,7 +343,7 @@ void MyStrategy::move(const Car& self, const World& world, const Game& game, Mov
 		x = self.getSpeedX();
 		y = self.getSpeedY();
 		double phi = 0.;//надо определить, как отклониться. Есть такая идея, но  я не уверен.
-		double znam = sqrt(x*x + y*y)*sqrt(i*i + j*j);
+		//double znam = sqrt(x*x + y*y)*sqrt(i*i + j*j);
 		if (world.getTick() == 401)
 		{
 
@@ -349,15 +351,24 @@ void MyStrategy::move(const Car& self, const World& world, const Game& game, Mov
 
 
 		}
-		if ((znam >0.00001)||(znam<-0.00001)) phi = acos((x*i + y*j) / znam);
+	//	if ((znam >0.00001)||(znam<-0.00001)) 
+		//phi = acos((x*i + y*j) / znam);
 		if (axis[0] != 0)
+		{
 			if (self.getSpeedY() < 0) znak = 1.0;
-			 else znak = -1.0;
+			else znak = -1.0;
+			phi = self.getSpeedY() / self.getSpeedX();
+			phi = fabs(phi);
+		}
 		if (axis[1] != 0)
-			if (self.getSpeedX() < 0) znak = 1.0; 
-			 else znak = -1.0;
+		{
+			if (self.getSpeedX() < 0) znak = 1.0;
+			else znak = -1.0;
+			phi = self.getSpeedX() / self.getSpeedY();
+			phi = fabs(phi);
+		}
+		move.setWheelTurn(2*phi*znak);
 
-			move.setWheelTurn(ConvertAngle(2*phi*znak));
 			delete[]axis;
 	
 	
@@ -368,7 +379,7 @@ void MyStrategy::move(const Car& self, const World& world, const Game& game, Mov
 	
       //  move.setUseNitro(true);
 	move.setEnginePower(1.0);
-
+	
 }
 
 
