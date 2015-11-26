@@ -34,7 +34,7 @@ int Convert(double num, const Game& game){
 	return ans;
 }
 
-bool povorot(int X, int Y, const Game& game, const World& world, int *Current_Tile,int *Current_Path)
+bool povorot(int X, int Y, const Game& game, const World& world, int *Current_Tile, int *Current_Path)
 {
 	//Можно подумать, что я теряю небольшой участок тайла при таком решении. Но если машина остановится в этом маленьком куске, то ей придется огибать затем и окружность(которая у поворота), поэтому нет смысла тормозить, если я въедув этот кусочек
 	int TileX = Convert(X, game);
@@ -43,8 +43,8 @@ bool povorot(int X, int Y, const Game& game, const World& world, int *Current_Ti
 	if (Convert(X - game.getTrackTileMargin() - 105, game) != TileX) return false;
 	if (Convert(Y + game.getTrackTileMargin() + 105, game) != TileY) return false;
 	if (Convert(Y - game.getTrackTileMargin() - 105, game) != TileY) return false;
-    if ((TileX == best_way[*Current_Path][*Current_Tile][0]) && (TileY == best_way[*Current_Path][*Current_Tile][1])) return false;
-
+	if ((TileX == best_way[*Current_Path][0][*Current_Tile]) && (TileY == best_way[*Current_Path][1][*Current_Tile])) return false;
+	if ((TileX < 0) || (TileY < 0) || (TileX >= world.getTilesXY().size()) || (TileY >= world.getTilesXY().size()))return false;
     if ((world.getTilesXY()[TileX][TileY] == HORIZONTAL) ||
 		(world.getTilesXY()[TileX][TileY] == VERTICAL)) return false;
 	return true;
@@ -309,24 +309,12 @@ int Create_Axis(int *axis, int* Current_Tile, int* Current_Path, const Car& self
         Next_Tile = 1;
         Next_Path = *Current_Path + 1;
     }
-    int Next_Tile2 = *Current_Tile + 2;
-    int Next_Path2 = *Current_Path;
-    if (best_way[*Current_Path][0][*Current_Tile + 2] == -1){
-        if (Next_Tile == 1){
-            if (best_way[*Current_Path + 1][0][*Current_Tile + 2] == -1){
-                Next_Path = *Current_Path + 2;
-                Next_Tile2 = 1;
-            }
-            else{
-                Next_Tile2 = 2;
-                Next_Path = *Current_Path + 1;
-            }
-        }
-        else {
-            Next_Tile2 = 1;
-            Next_Path = *Current_Path + 1;
-        }
-    }
+    int Next_Tile2 = Next_Tile + 1;
+    int Next_Path2 = Next_Path;
+	if (best_way[Next_Path][0][Next_Tile + 1] == -1){
+		Next_Tile2 = 1;
+		Next_Path2 = Next_Path + 1;
+	}
 
     if ((TileX == best_way[Next_Path][0][Next_Tile]) && (TileY == best_way[Next_Path][1][Next_Tile])){
         if (best_way[Next_Path][0][Next_Tile] == best_way[Next_Path2][0][Next_Tile2]){
@@ -418,6 +406,10 @@ void MyStrategy::move(const Car& self, const World& world, const Game& game, Mov
 		PastCoorX = self.getX();
 		PastCoorY = self.getY();
 		Current_Tile++;
+		if (best_way[Current_Path][0][Current_Tile] == -1){
+			Current_Tile = 1;
+			Current_Path = Current_Path + 1;
+		}
 
 	}
     if (world.getTick() > game.getInitialFreezeDurationTicks())
@@ -428,10 +420,12 @@ void MyStrategy::move(const Car& self, const World& world, const Game& game, Mov
 
         // Узнаём нужно ли поворачивать
         amTurning = Check_Cond_For_Turning(self, world, &Current_Tile, &Current_Path,game);   //  в функции povorot нужно добавить проверку , нужно ли мне поворачивать в 
-                                                                                                // каком-то тайле. И добавить проверку на тот случай, если идут несколько 
+                                                                                              // каком-то тайле. И добавить проверку на тот случай, если идут несколько 
                                                                                                 // поворотных тайлов подряд (использование тормоза)       
         // Создаём вектор направления 
-        if (amTurning) {
+		if (world.getTick() == 450)
+			int a = 5;
+		if (amTurning) {
             int ans;
             ans = Create_Axis(axis, &Current_Tile, &Current_Path,self,game);   // возвращает 0 ,если точка, где остановится машина не является ни одной из двух последующих 
                                                                               /// тайлов в идеальном пути 
