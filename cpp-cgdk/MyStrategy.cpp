@@ -374,7 +374,7 @@ void Create_Axis_in_my_pos(int *axis, int* Current_Tile, int* Current_Path){
         Next_Tile = 1;
         Next_Path = *Current_Path + 1;
     }
-    if (best_way[*Current_Path][*Current_Tile][0] == best_way[Next_Path][Next_Tile][0]){
+    if (best_way[*Current_Path][*Current_Tile][0] != best_way[Next_Path][Next_Tile][0]){
         axis[0] = 0;
         if (best_way[*Current_Path][*Current_Tile][1] > best_way[Next_Path][Next_Tile][1])
             axis[1] = -1;
@@ -409,11 +409,20 @@ void MyStrategy::move(const Car& self, const World& world, const Game& game, Mov
             Current_Path = 0;
         }
     }
+	static double PastCoorX = self.getX();
+	static double PastCoorY = self.getY();
   ///   ¬сЄ до этого момента заполн€ет массив идеального пути . Ётой части на заполнение массива нужно world.getWaypoints().size() - тиков   
 
-    
+	if ((Convert(self.getX(), game) != Convert(PastCoorX, game)) || (Convert(self.getY(), game) != Convert(PastCoorY, game)))
+	{
+		PastCoorX = self.getX();
+		PastCoorY = self.getY();
+		Current_Tile++;
+
+	}
     if (world.getTick() > game.getInitialFreezeDurationTicks())
-    {     
+	{
+		Current_Tile;
         static bool amTurning = false;
         int *axis = new int[2];
 
@@ -435,7 +444,21 @@ void MyStrategy::move(const Car& self, const World& world, const Game& game, Mov
         double vect_Speed[2];
         vect_Speed[0] = self.getSpeedX();
         vect_Speed[1] = self.getSpeedY();
-
+		 double x = vect_Speed[0];
+		 double y = vect_Speed[1];
+		 double znak;
+		 double i = axis[0];
+		 double j = axis[1];
+		double phi = 0.;//надо определить, как отклонитьс€. ≈сть така€ иде€, но  € не уверен.
+		double znam = sqrt(x*x + y*y)*sqrt(i*i + j*j);
+		if ((znam >0.00001) || (znam<-0.00001)) phi = acos((x*i + y*j) / znam);
+		     if (axis[0] != 0)
+			if (self.getSpeedY() < 0) znak = 1.0;
+			else znak = -1.0;
+			if (axis[1] != 0)
+				if (self.getSpeedX() < 0) znak = 1.0;
+				else znak = -1.0;
+				move.setWheelTurn(ConvertAngle(2 * phi*znak));
         // Ќаправл€ем колЄса так, чтобы вектор скорости и вектор направлени€ совпадали
 
         //!! Ќужно , чтобы машина ехала к дальней стороне от поворота, иначе она не  войдЄт в поворот
@@ -444,6 +467,7 @@ void MyStrategy::move(const Car& self, const World& world, const Game& game, Mov
         
         delete[] axis;
 	}
+
     move.setEnginePower(1.0);
 }
 
