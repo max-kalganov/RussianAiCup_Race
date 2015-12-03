@@ -4,7 +4,6 @@
 #define S_For_Prop 841.15578617973542;
 #define PI 3.14159265358979323846
 #define _USE_MATH_DEFINES
-#define fabs f_abs
 #include <cmath>
 #include <cstdlib>
 
@@ -34,7 +33,7 @@ int Convert(double num, const Game& game){
 	return ans;
 }
 
-bool povorot(int X, int Y, const Game& game, const World& world, int *Current_Tile,int *Current_Path)
+bool povorot(int X, int Y, const Game& game, const World& world, int *Current_Tile, int *Current_Path)
 {
 	//ћожно подумать, что € тер€ю небольшой участок тайла при таком решении. Ќо если машина остановитс€ в этом маленьком куске, то ей придетс€ огибать затем и окружность(котора€ у поворота), поэтому нет смысла тормозить, если € въедув этот кусочек
 	int TileX = Convert(X, game);
@@ -43,8 +42,9 @@ bool povorot(int X, int Y, const Game& game, const World& world, int *Current_Ti
 	if (Convert(X - game.getTrackTileMargin() - 105, game) != TileX) return false;
 	if (Convert(Y + game.getTrackTileMargin() + 105, game) != TileY) return false;
 	if (Convert(Y - game.getTrackTileMargin() - 105, game) != TileY) return false;
-    if ((TileX == best_way[*Current_Path][*Current_Tile][0]) && (TileY == best_way[*Current_Path][*Current_Tile][1])) return false;
-
+	if ((TileX == best_way[*Current_Path][0][*Current_Tile]) && (TileY == best_way[*Current_Path][1][*Current_Tile])) return false;
+	int max_num = world.getTilesXY().size();
+	if ((TileX < 0) || (TileY < 0) || (TileX >= max_num ) || (TileY >= max_num))return false;
     if ((world.getTilesXY()[TileX][TileY] == HORIZONTAL) ||
 		(world.getTilesXY()[TileX][TileY] == VERTICAL)) return false;
 	return true;
@@ -170,6 +170,8 @@ int Write_New_Points(Tree **main_mas, int count_next, int count_now, int next, i
 			How_many_ans = 3;
 		}
 		else How_many_ans = 4;
+		break;
+	default:
 		break;
 	}
 
@@ -309,6 +311,7 @@ int Create_Axis(int *axis, int* Current_Tile, int* Current_Path, const Car& self
         Next_Tile = 1;
         Next_Path = *Current_Path + 1;
     }
+
     int Next_Tile2 = *Current_Tile + 2;
     int Next_Path2 = *Current_Path;
     if (best_way[*Current_Path][0][*Current_Tile + 2] == -1){
@@ -327,6 +330,7 @@ int Create_Axis(int *axis, int* Current_Tile, int* Current_Path, const Car& self
             Next_Path = *Current_Path + 1;
         }
     }
+
 
     if ((TileX == best_way[Next_Path][0][Next_Tile]) && (TileY == best_way[Next_Path][1][Next_Tile])){
         if (best_way[Next_Path][0][Next_Tile] == best_way[Next_Path2][0][Next_Tile2]){
@@ -409,36 +413,76 @@ void MyStrategy::move(const Car& self, const World& world, const Game& game, Mov
             Current_Path = 0;
         }
     }
+	static double PastCoorX = self.getX();
+	static double PastCoorY = self.getY();
   ///   ¬сЄ до этого момента заполн€ет массив идеального пути . Ётой части на заполнение массива нужно world.getWaypoints().size() - тиков   
 
-    
+	if ((Convert(self.getX(), game) != Convert(PastCoorX, game)) || (Convert(self.getY(), game) != Convert(PastCoorY, game)))
+	{
+		PastCoorX = self.getX();
+		PastCoorY = self.getY();
+		Current_Tile++;
+		if (best_way[Current_Path][0][Current_Tile] == -1){
+			Current_Tile = 1;
+			Current_Path = Current_Path + 1;
+		}
+
+	}
     if (world.getTick() > game.getInitialFreezeDurationTicks())
-    {     
+	{
+		Current_Tile;
         static bool amTurning = false;
         int *axis = new int[2];
 
         // ”знаЄм нужно ли поворачивать
         amTurning = Check_Cond_For_Turning(self, world, &Current_Tile, &Current_Path,game);   //  в функции povorot нужно добавить проверку , нужно ли мне поворачивать в 
+
                                                                                                 // каком-то тайле. » добавить проверку на тот случай, если идут несколько 
         if (world.getTick() == 181)
                 int d = 9;
 
         // поворотных тайлов подр€д (использование тормоза)       
         // —оздаЄм вектор направлени€ 
-        if (amTurning) {
+		if (world.getTick() == 830)
+			int a = 5;
+		if (amTurning) {
             int ans;
             ans = Create_Axis(axis, &Current_Tile, &Current_Path,self,game);   // возвращает 0 ,если точка, где остановитс€ машина не €вл€етс€ ни одной из двух последующих 
-                                                                              /// тайлов в идеальном пути 
-        }
+			move.setBrake(true);
+		}
         else{
             Create_Axis_in_my_pos(axis, &Current_Tile, &Current_Path);
+			move.setBrake(false);
+			move.setEnginePower(1.0);
         }
 
         // Ќаходим направление скорости
         double vect_Speed[2];
         vect_Speed[0] = self.getSpeedX();
         vect_Speed[1] = self.getSpeedY();
-
+		 double x = vect_Speed[0];
+		 double y = vect_Speed[1];
+		 double znak;
+		 double i = axis[0];
+		 double j = axis[1];
+		double phi = 0.;//надо определить, как отклонитьс€. ≈сть така€ иде€, но  € не уверен.
+		double znam = sqrt(x*x + y*y)*sqrt(i*i + j*j);
+		if ((znam >0.00001) || (znam<-0.00001)) phi = acos(f_abs(x*i + y*j) / znam);
+		if (axis[0] == 1)
+			if (self.getSpeedY() < 0) znak = 1.0;
+			else znak = -1.0;
+		if (axis[0] == -1)
+			if (self.getSpeedY() < 0) znak = -1.0;
+			else znak = 1.0;
+		if (axis[1] == 1)
+			if (self.getSpeedX() < 0) znak = -1.0;
+			else znak = 1.0;
+		if (axis[1] == -1)
+			if (self.getSpeedX() < 0) znak = 1.0;
+			else znak = -1.0;
+		move.setWheelTurn(ConvertAngle(2 * phi*znak));
+		if (f_abs(phi) < 0.2) 
+			move.setWheelTurn(ConvertAngle(self.getAngleTo(self.getX() + axis[0], self.getY() + axis[1])));
         // Ќаправл€ем колЄса так, чтобы вектор скорости и вектор направлени€ совпадали
 
         //!! Ќужно , чтобы машина ехала к дальней стороне от поворота, иначе она не  войдЄт в поворот
@@ -447,6 +491,7 @@ void MyStrategy::move(const Car& self, const World& world, const Game& game, Mov
         
         delete[] axis;
 	}
+
     move.setEnginePower(1.0);
 }
 
